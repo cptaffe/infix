@@ -114,6 +114,7 @@ bool parse::gentree(Obj **tree) {
 		} else {
 			addchild(tree, o);
 		}
+		delete tok;
 	} while (tok != NULL);
 	return true; // worked
 }
