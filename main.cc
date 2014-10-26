@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
 	lex *l = new lex(stdin);
 	parse *p = new parse(l->getQue());
 
-	// launch lexer & parser as threads
+	// launch lexer, parser & evaluator as threads
 	thread lexer (&lex::lexLine, l);
 	thread parser (&parse::parseLine, p);
 	thread eval (&Evaluate, p->objs);
