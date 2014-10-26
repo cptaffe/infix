@@ -10,6 +10,9 @@
 #include <ctype.h>
 #include <stdio.h>
 #include <string.h>
+#include <string>
+
+using namespace std;
 
 typedef enum {
 	TYPE_OP,
@@ -32,9 +35,12 @@ public:
 	Obj(int);
 	Obj(char *);
 	~Obj();
+	bool isValid();
 	string toStr();
+	string *prefix();
 	string *postfix(); // string as postfix
 	string *infix(); // string as infix
+	void prefix(string *);
 	void postfix(string *); // string as postfix
 	void infix(string *); // string as infix
 	char *instr(); // returns x86 instruction
@@ -71,6 +77,25 @@ Obj::Obj(char *tok) {
 Obj::~Obj() {
 	if (rchild != NULL) {delete rchild;}
 	if (lchild != NULL) {delete lchild;}
+}
+
+string *Obj::prefix() {
+	string *str = new string();
+	prefix(str);
+	return str;
+}
+
+void Obj::prefix(string *str) {
+	if (this != NULL) {
+		if (type == TYPE_OP) {
+			str->append(toStr());
+			str->push_back(' ');
+			lchild->prefix(str);
+			str->push_back(' ');
+			rchild->prefix(str);
+			str->push_back(' ');
+		} else {str->append(toStr());}
+	} else {str->append(toStr());}
 }
 
 string *Obj::postfix() {
@@ -110,6 +135,16 @@ void Obj::infix(string *str) {
 			str->push_back(')');
 		} else {str->append(toStr());}
 	} else {str->append(toStr());}
+}
+
+bool Obj::isValid() {
+	if (this == NULL) {return false;}
+	else if (type == TYPE_OP) {
+		if (lchild->isValid() && rchild->isValid()) {return true;}
+		else {return false;}
+	} else {
+		return true;
+	}
 }
 
 int64_t Obj::eval() {

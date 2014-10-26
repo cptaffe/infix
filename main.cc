@@ -1,28 +1,44 @@
+
+/*
+	CPSC2380
+	Department of Computer Science, UALR
+	Project 2
+	Student Name: Connor Taffe
+	Student UALR ID (last four digits): XXXX
+	Project Description:
+		This project takes input from stdin and lexes it into a thread-safe queue,
+		items are popped off the queue by the parser, and lexed into a tree.
+		The tree is then recursively evaluated by the parser and the result is
+		displayed.
+	Project Due Date: 9/9/2014
+	Project Revised Date: 8/30/2014, 9/6/2014
+*/
+
+
 #include <thread>
 #include "lex.h"
 #include "parse.h"
+#include "eval.h"
 
 using namespace std;
 
 int main(int argc, char *argv[]) {
-	//if (argc < 2) {printf("need file name.\n"); exit(1);}
-	//char **toks = (char **) calloc(sizeof(char *), 1024);
-	//FILE *f = fopen(argv[1], "r");
-	char c;
-	//printf("? "); fflush(stdout);
-	//while ((c = getchar()) != EOF) {
-		//ungetc(c, stdin);
-		lex *l = new lex(stdin);
-		parse *p = new parse(l->getQue());
 
-		thread lexer (&lex::lexLine, l);
-		thread parser (&parse::parseLine, p);
+	// init new lexer & parser
+	lex *l = new lex(stdin);
+	parse *p = new parse(l->getQue());
 
-		lexer.join();
-		parser.join();
+	// launch lexer & parser as threads
+	thread lexer (&lex::lexLine, l);
+	thread parser (&parse::parseLine, p);
+	thread eval (&Evaluate, p->objs);
 
-		delete l;
-		delete p;
-		//printf("? "); fflush(stdout);
-	//}
+	// wait for them to finish
+	lexer.join();
+	parser.join();
+	eval.join();
+
+	// free allocated memory
+	delete l;
+	delete p;
 }
