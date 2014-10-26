@@ -1,20 +1,25 @@
 
 // lexer program
 
+#ifndef INFIX_LEX_H_
+#define INFIX_LEX_H_
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <ctype.h>
 #include <string.h>
+#include <iostream>
+#include "que.h" // locking que.
+
+using namespace std;
 
 const size_t BUFSIZE = 256; // 0.25kb
 
 class lex {
 	FILE *code;
 	char *buf;
-	char **toks;
-	int buflen;
-	int toki;
+	que<char *> *toks;
 	int i; // index of buf
 public:
 	lex(FILE *f);
@@ -25,10 +30,10 @@ public:
 	void emit();
 	int len();
 	void dump();
-	void reset();
 	void killspace();
-	char **lex_all();
+	void lexLine();
 	void bufresize();
+	que<char *> *getQue();
 };
 
 typedef void *(*lexfunc)(lex *);
@@ -36,21 +41,19 @@ typedef void *(*lexfunc)(lex *);
 lex::lex(FILE *f) {
 	code = f;
 	buf = (char *) calloc(sizeof(char), BUFSIZE);
-	buflen = 1024;
-	toks = (char **) calloc(sizeof(char *), buflen);
+	toks = new que<char *>();
 	i = 0;
-	toki = 0;
-}
-
-void lex::bufresize() {
-	buflen *= 2; // double
-	toks = (char **) realloc(toks, sizeof(char *) * buflen);
 }
 
 lex::~lex() {
 	//fclose(l->code);
 	delete buf;
 }
+
+que<char *> *lex::getQue() {
+	return toks;
+}
+
 
 char lex::next() {
 	buf[i] = getc(code);
@@ -77,10 +80,8 @@ void lex::emit() {
 	char *str = (char *) malloc(i + 1);
 	memcpy(str, buf, i);
 	str[i] = '\0';
-	toks[toki] = str;
-	//printf((char *) "emit: '%s'\n", toks[toki]);
-	toki++;
-	if (toki >= buflen) {bufresize();}
+	// printf("emit: %s\n", str);
+	toks->push(str);
 	i = 0; // reset
 }
 
@@ -90,10 +91,6 @@ int lex::len() {
 
 void lex::dump() {
 	i = 0;
-}
-
-void lex::reset() {
-	toki = i = 0;
 }
 
 void lex::killspace() {
@@ -107,7 +104,7 @@ void *lex_num(lex *l);
 // lex_op
 void *lex_op(lex *l) {
 	l->killspace();
-	char ops[] = "+-*/";
+	char ops[] = "+-*/x÷";
 	while(memchr(&ops, l->next(), sizeof(ops)) != NULL) {}
 	l->back();
 	if (l->len() > 0) {
@@ -117,6 +114,7 @@ void *lex_op(lex *l) {
 		l->next(); l->emit(); // emit paren
 		return (void *) lex_op;
 	} else if (l->peek() == EOF || l->peek() == '\n') {
+		l->next(); // lex
 		l->dump(); // ignore
 		return NULL;
 	} else {
@@ -137,6 +135,7 @@ void *lex_num(lex *l) {
 		l->next(); l->emit(); // emit paren
 		return (void *) lex_num;
 	} else if (l->peek() == EOF || l->peek() == '\n') {
+		l->next(); // lex
 		l->dump(); // ignore
 		return NULL;
 	} else {
@@ -146,11 +145,14 @@ void *lex_num(lex *l) {
 }
 
 // finite state machine
-char **lex::lex_all() {
-	lexfunc lexer = lex_num;
-	while (lexer != NULL) {
-		lexer = (lexfunc) lexer(this);
+void lex::lexLine() {
+	while (peek() != EOF) {
+		lexfunc lexer = lex_num;
+		while (lexer != NULL) {
+			lexer = (lexfunc) lexer(this);
+		}
+		toks->push(NULL); // end of statement
 	}
-	return toks;
-	//reset(); // reset
 }
+
+#endif // INFIX_LEX_H_
