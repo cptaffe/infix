@@ -1,7 +1,8 @@
 #ifndef INFIX_EVAL_H_
 #define INFIX_EVAL_H_
 
-#import "obj.h"
+#include <fcntl.h>
+#include "obj.h"
 
 // consumes trees from objs queue until it is done & empty,
 // with each tree it prints the prefix, postfix, and infix notation.
@@ -12,10 +13,12 @@ void Evaluate(que<Obj *> *objs) {
 		objs->pop(o);
 		if (o == NULL) {continue;}
 		if (o->isValid()) {
-			cout << "prefix: " << *o->prefix() << endl;
-			cout << "postfix: " << *o->postfix() << endl;
-			cout << "infix: " << *o->infix() << endl;
+			flock(fileno(stdout), LOCK_EX);
+			printf((char *) "prefix: %s\n", o->prefix()->c_str());
+			printf("postfix: %s\n", o->postfix()->c_str());
+			printf("infix: %s\n", o->infix()->c_str());
 			printf((char *) "=> %lld\n", o->eval());
+			flock(fileno(stdout), LOCK_UN);
 		}
 		delete o;
 	}
