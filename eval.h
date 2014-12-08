@@ -17,6 +17,7 @@ void Evaluate(que<Obj *> *objs) {
 			printf((char *) "prefix: %s\n", o->prefix()->c_str());
 			printf("postfix: %s\n", o->postfix()->c_str());
 			printf("infix: %s\n", o->infix()->c_str());
+			printf("tree: %s\n", o->tree_print()->c_str());
 			printf((char *) "=> %lld\n", o->eval());
 			flock(fileno(stdout), LOCK_UN);
 		}

@@ -34,9 +34,11 @@ public:
 	string *prefix();
 	string *postfix(); // string as postfix
 	string *infix(); // string as infix
+	string *tree_print(); // string as infix
 	void prefix(string *);
 	void postfix(string *); // string as postfix
 	void infix(string *); // string as infix
+	void tree_print(string *);
 	char *instr(); // returns x86 instruction
 	int64_t eval(); // evaluate tree
 };

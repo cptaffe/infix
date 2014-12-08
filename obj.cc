@@ -98,6 +98,27 @@ void Obj::infix(string *str) {
 	} else {str->append(toStr());}
 }
 
+string *Obj::tree_print() {
+	string *str = new string();
+	tree_print(str);
+	return str;
+}
+
+void Obj::tree_print(string *str) {
+	if (this != NULL) {
+		if (type == TYPE_OP) {
+			str->push_back('{');
+			str->append(toStr());
+			str->append(": (");
+			lchild->tree_print(str);
+			str->append(", ");
+			rchild->tree_print(str);
+			str->push_back('}');
+			str->push_back(')');
+		} else {str->append(toStr());}
+	} else {str->append(toStr());}
+}
+
 bool Obj::isValid() {
 	if (this == NULL) {return false;}
 	else if (type == TYPE_OP) {
